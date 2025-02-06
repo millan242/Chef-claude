@@ -8,6 +8,7 @@ export default function Form() {
     const [ingredient, setIngredient] = useState("");
     const [ingredients, setIngredients] = React.useState([]);
     const [recipeShown, setRecipeShown] = React.useState("")
+    const [isLoading, setIsLoading] = useState(false);
     const showRecipeSection = React.useRef(null)
     React.useEffect(() => {
         if (recipeShown !== "" && showRecipeSection.current !== null) {
@@ -16,8 +17,10 @@ export default function Form() {
     }, [recipeShown])
     const getRecipe = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         const genRecipe = await getRecipeFromHuggingFace(ingredients);
         setRecipeShown(genRecipe);
+        setIsLoading(false);
     }
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -26,8 +29,12 @@ export default function Form() {
             setIngredient("");
         }
     };
+    const handleDeleteIngredient = (index) => {
+        setIngredients(ingredients.filter((_, i) => i !== index));
+    };
     return (
         <main>
+            <h2 className="heading">Let's create something <span>delicious</span>😋</h2>
             <form onSubmit={(e) => handleSubmit(e)} className="add-ingredient-form">
                 <input
                     type="text"
@@ -39,8 +46,11 @@ export default function Form() {
                 />
                 <button type="submit"><Plus size={15} />Add ingredient</button>
             </form>
+            {ingredients.length === 0 && (
+                <p className="empty-state">Your kitchen is empty! Add ingredients to get cooking...</p>
+            )}
             {ingredients.length > 0 && <IngredientList ref={showRecipeSection} ingredients={ingredients}
-                getRecipe={(e) => getRecipe(e)} />}
+                getRecipe={(e) => getRecipe(e)} deleteIngredient={handleDeleteIngredient} isLoading={isLoading} />}
             {recipeShown && <ClaudeRecipe recipeShown={recipeShown} />}
         </main>
     );
